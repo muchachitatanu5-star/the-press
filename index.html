@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Press — A Literary Workshop</title>
+  <meta name="description" content="A self-guided literary workshop built by a writer who couldn't afford the expensive ones. 20 craft modules. Editorial review tools. $49 one-time." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Courier+Prime:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #1a1208;
+      --cream: #f5f0e8;
+      --gold: #9a7c3f;
+      --gold-light: #c4a35a;
+      --border: #d8cdb8;
+      --muted: #7a6a4a;
+      --warm-white: #faf7f2;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 24px 60px;
+      position: relative;
+      text-align: center;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 50% 0%, rgba(154,124,63,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 80% 80%, rgba(154,124,63,0.05) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero-eyebrow {
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px;
+      letter-spacing: 0.45em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.1s forwards;
+    }
+
+    .hero-title {
+      font-size: clamp(52px, 14vw, 120px);
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      line-height: 0.9;
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fadeUp 0.9s ease 0.2s forwards;
+    }
+
+    .hero-rule {
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 0 auto 32px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.35s forwards;
+    }
+
+    .hero-sub {
+      font-size: clamp(18px, 3vw, 26px);
+      font-style: italic;
+      color: var(--muted);
+      max-width: 560px;
+      margin: 0 auto 48px;
+      font-weight: 300;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.45s forwards;
+    }
+
+    .hero-cta {
+      display: inline-block;
+      background: var(--ink);
+      color: var(--cream);
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 16px 40px;
+      border: 1px solid var(--ink);
+      transition: background 0.3s, color 0.3s;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.55s forwards;
+    }
+
+    .hero-cta:hover {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--ink);
+    }
+
+    .hero-price-note {
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 14px;
+      letter-spacing: 0.05em;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.65s forwards;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Courier Prime', monospace;
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      color: var(--border);
+      text-transform: uppercase;
+      opacity: 0;
+      animation: fadeIn 1s ease 1.4s forwards;
+    }
+
+    /* ── Sections ── */
+    section {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 80px 24px;
+    }
+
+    .section-rule {
+      width: 1px;
+      height: 60px;
+      background: linear-gradient(180deg, transparent, var(--gold), transparent);
+      margin: 0 auto 60px;
+    }
+
+    /* ── Story ── */
+    .story-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: 9px;
+      letter-spacing: 0.4em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 32px;
+      display: block;
+    }
+
+    .story p {
+      font-size: clamp(18px, 2.5vw, 22px);
+      font-weight: 300;
+      color: #3a2e1a;
+      margin-bottom: 24px;
+      line-height: 1.8;
+    }
+
+    .story p.lead {
+      font-size: clamp(22px, 3vw, 28px);
+      font-style: italic;
+      color: var(--ink);
+    }
+
+    .story-sig {
+      margin-top: 40px;
+      font-family: 'Courier Prime', monospace;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+    }
+
+    /* ── What's inside ── */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-top: 40px;
+    }
+
+    .module-cell {
+      background: var(--warm-white);
+      padding: 20px 24px;
+      font-size: 14px;
+    }
+
+    .module-cell .num {
+      font-family: 'Courier Prime', monospace;
+      font-size: 9px;
+      color: var(--gold);
+      letter-spacing: 0.2em;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .section-heading {
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .section-sub {
+      font-size: 16px;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+
+    /* ── Pricing ── */
+    .pricing-section {
+      background: var(--ink);
+      color: var(--cream);
+      max-width: 100%;
+      padding: 80px 24px;
+    }
+
+    .pricing-inner {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .pricing-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: 9px;
+      letter-spacing: 0.4em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 32px;
+      display: block;
+    }
+
+    .pricing-heading {
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      color: var(--cream);
+    }
+
+    .pricing-sub {
+      font-size: 16px;
+      color: #8a7a5a;
+      font-style: italic;
+      margin-bottom: 48px;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: #2a2010;
+      border: 1px solid #2a2010;
+      margin-bottom: 48px;
+    }
+
+    .pricing-cell {
+      background: #0f0d08;
+      padding: 28px 24px;
+    }
+
+    .pricing-cell.highlight {
+      background: var(--gold);
+    }
+
+    .pricing-cell .venue {
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: #5a4a2a;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .pricing-cell.highlight .venue {
+      color: var(--ink);
+      opacity: 0.6;
+    }
+
+    .pricing-cell .price {
+      font-size: clamp(28px, 5vw, 40px);
+      font-weight: 300;
+      color: var(--cream);
+      line-height: 1;
+    }
+
+    .pricing-cell.highlight .price {
+      color: var(--ink);
+    }
+
+    .pricing-cell .price-note {
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px;
+      color: #5a4a2a;
+      margin-top: 6px;
+      display: block;
+    }
+
+    .pricing-cell.highlight .price-note {
+      color: var(--ink);
+      opacity: 0.7;
+    }
+
+    .pricing-tagline {
+      font-size: clamp(16px, 2.5vw, 20px);
+      font-style: italic;
+      color: #8a7a5a;
+      margin-bottom: 40px;
+      line-height: 1.7;
+    }
+
+    .pricing-cta {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--ink);
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 16px 40px;
+      transition: background 0.3s;
+    }
+
+    .pricing-cta:hover { background: var(--gold-light); }
+
+    .pricing-cta-note {
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      color: #5a4a2a;
+      margin-top: 14px;
+      display: block;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 48px 24px;
+      border-top: 1px solid var(--border);
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--border);
+      text-transform: uppercase;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 600px) {
+      .modules-grid { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Hero ── -->
+<div class="hero">
+  <div class="hero-eyebrow">A Literary Workshop</div>
+  <h1 class="hero-title">The Press</h1>
+  <div class="hero-rule"></div>
+  <p class="hero-sub">Craft-level literary training — without the application, the acceptance rate, or the $3,000 price tag.</p>
+  <a href="https://gumroad.com" class="hero-cta">Get Instant Access — $49 →</a>
+  <p class="hero-price-note">$49 one-time · no subscription · yours to keep</p>
+  <p style="margin-top:12px; font-family:'Courier Prime',monospace; font-size:11px; color:#9a7c3f;">
+    Already have a key? <a href="/app" style="color:#9a7c3f; text-decoration:underline;">Enter the workshop →</a>
+  </p>
+  <div class="scroll-hint">↓ &nbsp; Read more</div>
+</div>
+
+<!-- ── Story ── -->
+<section class="story reveal">
+  <div class="section-rule"></div>
+  <span class="story-label">Why this exists</span>
+  <p class="lead">I wanted to go to Bread Loaf. I couldn't afford it.</p>
+  <p>I'd been writing seriously for years — submitting to journals, losing sleep over line breaks, reading everything I could get my hands on, trying to close the gap between the writer I was and the one I knew I could be. And then I'd look up the workshops. Tin House. Kenyon. Bread Loaf. The ones where real writers went to become more real. $2,500. $3,000. Application required. Acceptance not guaranteed.</p>
+  <p>There's a particular kind of grief in wanting something that was never designed to include you. Not a door slammed in your face — just a door that was never meant for you to find.</p>
+  <p>I kept writing anyway. I submitted anyway. I built my own curriculum from craft essays and close readings and the marginal notes of writers I admired. And slowly, something started to work. Not because I found a shortcut — but because I found the right questions to ask of my own work.</p>
+  <p>The Press is those questions, organized. It's the workshop I built for myself, made available to anyone who can't wait for permission, can't afford the price of admission, and won't stop writing either way.</p>
+  <p><strong>You don't need anyone's permission to become a better writer. You just need the right set of tools.</strong></p>
+  <div class="story-sig">— Tania M., creator of The Press</div>
+</section>
+
+<!-- ── What's inside ── -->
+<section class="reveal">
+  <div class="section-rule"></div>
+  <span class="story-label">What's inside</span>
+  <h2 class="section-heading">Five books. Twenty modules.<br>One complete craft sequence.</h2>
+  <p class="section-sub">Each module includes a craft brief, a writing exercise, and a reflection prompt.</p>
+
+  <div class="modules-grid">
+    <div class="module-cell"><span class="num">Book I</span>The Material World — image, object, the body</div>
+    <div class="module-cell"><span class="num">Book II</span>Structure & Time — form, fragmentation, sequence</div>
+    <div class="module-cell"><span class="num">Book III</span>Voice & Tone — register, distance, authority</div>
+    <div class="module-cell"><span class="num">Book IV</span>The Lyric Essay — research, braiding, digression</div>
+    <div class="module-cell"><span class="num">Book V</span>The Submission — revision, cover letters, release</div>
+    <div class="module-cell"><span class="num">Included</span>Editorial Review tool with AI Editor's Letter</div>
+  </div>
+</section>
+
+<!-- ── Pricing ── -->
+<div class="pricing-section reveal">
+  <div class="pricing-inner">
+    <span class="pricing-label">The honest comparison</span>
+    <h2 class="pricing-heading">The same craft sequence.</h2>
+    <p class="pricing-sub">No application. No acceptance rate. No schedule to keep.</p>
+
+    <div class="pricing-grid">
+      <div class="pricing-cell">
+        <span class="venue">Tin House Workshop</span>
+        <div class="price">$2,500</div>
+        <span class="price-note">10 days · application required</span>
+      </div>
+      <div class="pricing-cell">
+        <span class="venue">Kenyon Review Writers</span>
+        <div class="price">$2,545</div>
+        <span class="price-note">10 days · application required</span>
+      </div>
+      <div class="pricing-cell">
+        <span class="venue">Bread Loaf</span>
+        <div class="price">$3,000+</div>
+        <span class="price-note">11 days · application required</span>
+      </div>
+      <div class="pricing-cell highlight">
+        <span class="venue">The Press</span>
+        <div class="price">$49</div>
+        <span class="price-note">self-paced · instant access · yours forever</span>
+      </div>
+    </div>
+
+    <p class="pricing-tagline">The workshops that shaped contemporary literary writing are extraordinary — and largely inaccessible. The Press doesn't replace community or mentorship. It gives you the craft sequence, so you can show up to both ready.</p>
+
+    <a href="https://gumroad.com" class="pricing-cta">Get The Press for $49 →</a>
+    <span class="pricing-cta-note">Instant delivery · license key emailed immediately after purchase</span>
+    <p style="margin-top:20px; font-family:'Courier Prime',monospace; font-size:11px; color:#5a4a2a;">
+      Already have a key? <a href="/app" style="color:#9a7c3f; text-decoration:underline;">Enter the workshop →</a>
+    </p>
+  </div>
+</div>
+
+<footer>
+  © The Press · Built by a writer, for writers
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
