@@ -1232,7 +1232,15 @@ function AdminFeedback({ onBack }) {
 // This app validates it against Gumroad's API via a Vercel proxy function.
 // No key generator needed. Refunded keys stop working automatically.
 
+// Owner key — lets you use your own workshop without buying through Gumroad.
+// Change this to something only you know before deploying.
+const OWNER_KEY = "PRESS-OWNER-TANIA-2026";
+
 async function verifyWithGumroad(key) {
+  // Owner bypass
+  if (key.trim().toUpperCase() === OWNER_KEY.toUpperCase()) {
+    return { valid: true, owner: true };
+  }
   const res = await fetch("/.netlify/functions/verify-license", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
