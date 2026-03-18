@@ -335,12 +335,95 @@ function TOC({ progress, onSelect }) {
   );
 }
 
-// ── Module Page ───────────────────────────────────────────────────────────────
+// ── Annotated Text ────────────────────────────────────────────────────────────
+// Renders craft brief text with expandable term annotations.
+// Terms are defined inline as [term|explanation] syntax in brief text.
+function AnnotatedText({ text }) {
+  const [open, setOpen] = useState({});
+  const parts = [];
+  const regex = /\[([^\|]+)\|([^\]]+)\]/g;
+  let last = 0, match;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > last) parts.push({ type: "text", content: text.slice(last, match.index) });
+    parts.push({ type: "term", term: match[1], def: match[2], key: match.index });
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) parts.push({ type: "text", content: text.slice(last) });
+
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (part.type === "text") {
+          return <span key={i}>{part.content}</span>;
+        }
+        const isOpen = open[part.key];
+        return (
+          <span key={i} style={{ position: "relative", display: "inline" }}>
+            <button
+              onClick={() => setOpen(o => ({ ...o, [part.key]: !o[part.key] }))}
+              style={{
+                background: "none", border: "none", padding: 0, cursor: "pointer",
+                color: C.gold, borderBottom: `1px dotted ${C.gold}`,
+                fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit",
+                fontStyle: "inherit",
+              }}
+            >
+              {part.term}
+            </button>
+            {isOpen && (
+              <span style={{
+                display: "block", margin: "8px 0 8px 16px", padding: "10px 14px",
+                background: C.parchment, border: `1px solid ${C.border}`,
+                borderLeft: `2px solid ${C.gold}`,
+                fontSize: 13, lineHeight: 1.7, color: "#3a2e1a",
+                fontStyle: "normal", fontFamily: mono,
+              }}>
+                {part.def}
+              </span>
+            )}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
+// ── Module Epigraphs ─────────────────────────────────────────────────────────
+const EPIGRAPHS = {
+  1: { quote: "A word is elegy to what it signifies.", author: "Robert Hass" },
+  2: { quote: "The line is a unit of attention.", author: "Charles Wright" },
+  3: { quote: "I am not resigned.", author: "Edna St. Vincent Millay" },
+  4: { quote: "The best poems cost something.", author: "Larry Levis" },
+  5: { quote: "Form is never more than an extension of content.", author: "Robert Creeley" },
+  6: { quote: "A sentence is not emotional, a paragraph is.", author: "Gertrude Stein" },
+  7: { quote: "The first sentence can't be written until the final sentence is written.", author: "Joyce Carol Oates" },
+  8: { quote: "The ending is where the poem discovers what it was about.", author: "Stanley Kunitz" },
+  9: { quote: "Sound is the life of poetry.", author: "Seamus Heaney" },
+  10: { quote: "Rhythm is the horse that carries meaning.", author: "Galway Kinnell" },
+  11: { quote: "I am not interested in poetry. I am interested in what poetry makes possible.", author: "Anne Carson" },
+  12: { quote: "Cut every word that does not earn its place.", author: "William Strunk Jr." },
+  13: { quote: "Revision is not an afterthought. It is the work.", author: "Donald Hall" },
+  14: { quote: "Write the poem you are afraid to write.", author: "Carolyn Forché" },
+  15: { quote: "A writer only begins a book. A reader finishes it.", author: "Samuel Johnson" },
+  16: { quote: "Every book is a quotation.", author: "Ralph Waldo Emerson" },
+  17: { quote: "The order of the sequence is the argument of the collection.", author: "Lucie Brock-Broido" },
+  18: { quote: "The title is the first act of interpretation.", author: "Frank Bidart" },
+  19: { quote: "A chapbook is a sustained obsession.", author: "Beckian Fritz Goldberg" },
+  20: { quote: "You cannot revise what you have not first allowed yourself to say.", author: "Adrienne Rich" },
+};
+
 function ModulePage({ module, book, progress, onComplete, onBack }) {
   const [reflection, setReflection] = useState(progress[module.id]?.reflection || "");
+  const [timerStarted, setTimerStarted] = useState(false);
   const timer = useTimer(module.timer);
   const done = progress[module.id]?.completed;
   const canComplete = reflection.trim().length >= 60;
+  const epigraph = EPIGRAPHS[module.id];
+
+  const handleStart = () => {
+    setTimerStarted(true);
+    timer.start();
+  };
 
   return (
     <div style={{ maxWidth: 680, margin: "0 auto", padding: "24px 20px 80px" }}>
@@ -351,58 +434,92 @@ function ModulePage({ module, book, progress, onComplete, onBack }) {
       </div>
       <h2 style={{ fontSize: "clamp(22px,5vw,34px)", fontWeight: "normal", margin: "0 0 28px", paddingBottom: 20, borderBottom: `1px solid ${C.border}` }}>{module.title}</h2>
 
+      {/* Epigraph */}
+      {epigraph && (
+        <div style={{ borderLeft: `2px solid ${C.gold}`, paddingLeft: 20, marginBottom: 36, opacity: 0.8 }}>
+          <p style={{ fontStyle: "italic", fontSize: 16, lineHeight: 1.7, margin: "0 0 6px", color: "#3a2e1a" }}>
+            "{epigraph.quote}"
+          </p>
+          <p style={{ fontSize: 11, letterSpacing: "0.15em", color: C.gold, margin: 0, textTransform: "uppercase" }}>— {epigraph.author}</p>
+        </div>
+      )}
+
+      {/* Craft Brief */}
       <div style={{ marginBottom: 36 }}>
         <div style={{ fontSize: 10, letterSpacing: "0.25em", color: C.gold, marginBottom: 14, textTransform: "uppercase" }}>Craft Brief</div>
         {module.brief.split("\n\n").map((p, i) => (
-          <p key={i} style={{ lineHeight: 1.85, fontSize: 15, marginBottom: 14, color: "#2a2010" }}>{p}</p>
+          <p key={i} style={{ lineHeight: 1.85, fontSize: 16, marginBottom: 16, color: "#2a2010" }}>
+            <AnnotatedText text={p} />
+          </p>
         ))}
       </div>
 
+      {/* Reading Anchor */}
       <div style={{ background: C.parchment, border: `1px solid ${C.border}`, borderLeft: `3px solid ${C.gold}`, padding: "16px 20px", marginBottom: 36 }}>
         <div style={{ fontSize: 10, letterSpacing: "0.25em", color: C.gold, marginBottom: 10, textTransform: "uppercase" }}>Reading Anchor</div>
-        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, fontStyle: "italic", color: "#3a2e1a" }}>{module.anchor.title}</p>
+        <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, fontStyle: "italic", color: "#3a2e1a" }}>{module.anchor.title}</p>
         {module.anchor.url && (
           <a href={module.anchor.url} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: 10, fontSize: 11, letterSpacing: "0.15em", color: C.gold, textDecoration: "none", textTransform: "uppercase" }}>Find it →</a>
         )}
       </div>
 
+      {/* Exercise */}
       <div style={{ marginBottom: 36 }}>
         <div style={{ fontSize: 10, letterSpacing: "0.25em", color: C.gold, marginBottom: 14, textTransform: "uppercase" }}>Exercise</div>
-        <p style={{ lineHeight: 1.8, fontSize: 14, color: "#2a2010", padding: "16px 20px", background: "#ede5d0", borderLeft: `2px solid ${C.border}`, margin: 0 }}>{module.exercise}</p>
+        <p style={{ lineHeight: 1.85, fontSize: 15, color: "#2a2010", padding: "18px 22px", background: "#ede5d0", borderLeft: `2px solid ${C.border}`, margin: 0 }}>{module.exercise}</p>
       </div>
 
+      {/* Timer — deliberate ritual */}
       <div style={{ marginBottom: 36 }}>
-        <div style={{ fontSize: 10, letterSpacing: "0.25em", color: C.gold, marginBottom: 14, textTransform: "uppercase" }}>Timer — {module.timer} min</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 36, fontFamily: mono, color: timer.done ? C.rust : timer.running ? C.ink : "#8a7a5a", minWidth: 90 }}>{timer.fmt}</span>
-          <div style={{ display: "flex", gap: 8 }}>
-            {!timer.running && !timer.done && <Btn small onClick={timer.start}>Start</Btn>}
-            {timer.running && <Btn small onClick={timer.pause}>Pause</Btn>}
-            {(timer.running || timer.done) && <Btn small onClick={() => timer.reset(module.timer)}>Reset</Btn>}
+        <div style={{ fontSize: 10, letterSpacing: "0.25em", color: C.gold, marginBottom: 14, textTransform: "uppercase" }}>Timed Writing — {module.timer} min</div>
+
+        {!timerStarted && !done ? (
+          <div style={{ background: C.parchment, border: `1px solid ${C.border}`, borderLeft: `3px solid ${C.gold}`, padding: "24px 22px" }}>
+            <p style={{ fontSize: 15, lineHeight: 1.7, color: "#3a2e1a", margin: "0 0 20px", fontStyle: "italic" }}>
+              You have {module.timer} minutes. When you start the timer, begin writing immediately. Do not plan. Do not outline. Begin with the first true sentence and follow it.
+            </p>
+            <Btn gold onClick={handleStart}>Begin — {module.timer} min →</Btn>
           </div>
-          {timer.done && <span style={{ fontSize: 12, color: C.rust, letterSpacing: "0.1em" }}>Time complete</span>}
-        </div>
+        ) : (
+          <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 48, fontFamily: mono, color: timer.done ? C.rust : timer.running ? C.ink : "#8a7a5a", minWidth: 110, letterSpacing: "0.05em" }}>{timer.fmt}</span>
+            <div style={{ display: "flex", gap: 8 }}>
+              {timer.running && <Btn small onClick={timer.pause}>Pause</Btn>}
+              {!timer.running && !timer.done && timerStarted && <Btn small onClick={timer.start}>Resume</Btn>}
+              {(timer.running || timer.done || timerStarted) && <Btn small onClick={() => { timer.reset(module.timer); }}>Reset</Btn>}
+            </div>
+            {timer.done && <span style={{ fontSize: 13, color: C.rust, letterSpacing: "0.1em", fontFamily: mono }}>Time complete — begin your reflection below</span>}
+          </div>
+        )}
       </div>
 
-      {!done && (
+      {/* Reflection */}
+      {(timerStarted || done) && (
         <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 10, letterSpacing: "0.25em", color: C.gold, marginBottom: 12, textTransform: "uppercase" }}>Reflection (min. 60 chars)</div>
-          <textarea
-            value={reflection} onChange={e => setReflection(e.target.value)}
-            placeholder="What did the exercise reveal about the craft principle? What did you discover you didn't know you knew?"
-            style={{ width: "100%", minHeight: 140, background: "#faf7f0", border: `1px solid ${C.border}`, borderRadius: 2, fontFamily: serif, fontSize: 14, lineHeight: 1.7, padding: "14px 16px", resize: "vertical", outline: "none", color: C.ink, boxSizing: "border-box" }}
-          />
-          <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 12 }}>
-            <Btn gold onClick={() => onComplete(module.id, reflection)} disabled={!canComplete}>Mark Complete →</Btn>
-            <span style={{ fontSize: 11, color: "#8a7a5a", fontFamily: mono }}>{reflection.trim().length}/60</span>
-          </div>
-        </div>
-      )}
+          {!done && (
+            <>
+              <div style={{ fontSize: 10, letterSpacing: "0.25em", color: C.gold, marginBottom: 12, textTransform: "uppercase" }}>Reflection (min. 60 chars)</div>
+              <p style={{ fontSize: 13, color: "#8a7a5a", fontStyle: "italic", marginBottom: 12, lineHeight: 1.6 }}>
+                What did the exercise reveal about the craft principle? What did you discover you didn't know you knew?
+              </p>
+              <textarea
+                value={reflection} onChange={e => setReflection(e.target.value)}
+                placeholder="Write your reflection here..."
+                style={{ width: "100%", minHeight: 160, background: "#faf7f0", border: `1px solid ${C.border}`, borderRadius: 2, fontFamily: serif, fontSize: 15, lineHeight: 1.8, padding: "16px 18px", resize: "vertical", outline: "none", color: C.ink, boxSizing: "border-box" }}
+              />
+              <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 12 }}>
+                <Btn gold onClick={() => onComplete(module.id, reflection)} disabled={!canComplete}>Mark Complete →</Btn>
+                <span style={{ fontSize: 12, color: "#8a7a5a", fontFamily: mono }}>{reflection.trim().length}/60</span>
+              </div>
+            </>
+          )}
 
-      {done && (
-        <div style={{ background: C.parchment, border: `1px solid ${C.gold}44`, borderLeft: `3px solid ${C.gold}`, padding: "16px 20px" }}>
-          <div style={{ fontSize: 10, letterSpacing: "0.15em", color: C.gold, marginBottom: 8 }}>COMPLETE</div>
-          <p style={{ margin: 0, fontStyle: "italic", fontSize: 14, color: "#3a2e1a", lineHeight: 1.6 }}>{reflection}</p>
+          {done && (
+            <div style={{ background: C.parchment, border: `1px solid ${C.gold}44`, borderLeft: `3px solid ${C.gold}`, padding: "18px 22px" }}>
+              <div style={{ fontSize: 10, letterSpacing: "0.15em", color: C.gold, marginBottom: 10 }}>COMPLETE · Saved to Notebook</div>
+              <p style={{ margin: 0, fontStyle: "italic", fontSize: 15, color: "#3a2e1a", lineHeight: 1.7 }}>{reflection}</p>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -647,10 +764,10 @@ function EditorialReview() {
             {/* Disclosure */}
             <div style={{ background: "#07070a", border: "1px solid #1c1c2a", borderLeft: "3px solid #4a4a8a", borderRadius: 2, padding: "16px 18px", marginBottom: 24 }}>
               <div style={{ color: "#6a6aaa", fontSize: 10, letterSpacing: "0.18em", marginBottom: 8 }}>AI DISCLOSURE & INTENDED USE</div>
-              <p style={{ color: "#778", fontFamily: serif, fontSize: 13, lineHeight: 1.7, margin: "0 0 8px", fontStyle: "italic" }}>
+              <p style={{ color: "#778", fontFamily: serif, fontSize: 15, lineHeight: 1.7, margin: "0 0 8px", fontStyle: "italic" }}>
                 This tool uses AI-assisted criteria drawn from editorial standards at literary journals — adapted from reading practices of senior editors at <em>The Paris Review</em>, <em>Ploughshares</em>, <em>Tin House</em>, and <em>Kenyon Review</em>.
               </p>
-              <p style={{ color: "#556", fontFamily: mono, fontSize: 11, lineHeight: 1.6, margin: 0 }}>
+              <p style={{ color: "#556", fontFamily: mono, fontSize: 13, lineHeight: 1.6, margin: 0 }}>
                 ⚠ Practice and self-study tool only. Not a substitute for human editorial feedback. Do not use as basis for formal submission decisions.
               </p>
             </div>
@@ -658,7 +775,7 @@ function EditorialReview() {
             {/* Piece input */}
             {!submitted ? (
               <div>
-                <p style={{ color: "#555", fontSize: 13, lineHeight: 1.7, marginBottom: 16, fontFamily: serif, fontStyle: "italic" }}>
+                <p style={{ color: "#555", fontSize: 15, lineHeight: 1.7, marginBottom: 16, fontFamily: serif, fontStyle: "italic" }}>
                   Paste your writing below — poem, essay, flash fiction, lyric prose, or any form. You will evaluate it across eight editorial parameters.
                 </p>
                 <div style={{ marginBottom: 14 }}>
@@ -720,8 +837,8 @@ function EditorialReview() {
                           {activeCard < CRITERIA.length - 1 && <button onClick={() => setActiveCard(activeCard + 1)} style={{ background: "none", color: "#444", border: "1px solid #1a1a1a", borderRadius: 2, padding: "4px 10px", fontFamily: mono, fontSize: 10, cursor: "pointer" }}>→</button>}
                         </div>
                       </div>
-                      <p style={{ color: "#aaa", fontFamily: serif, fontSize: 13, lineHeight: 1.6, marginBottom: 6, fontStyle: "italic" }}>{c.question}</p>
-                      <p style={{ color: "#555", fontSize: 11, fontFamily: mono, marginBottom: 16 }}>→ {c.prompt}</p>
+                      <p style={{ color: "#aaa", fontFamily: serif, fontSize: 15, lineHeight: 1.6, marginBottom: 6, fontStyle: "italic" }}>{c.question}</p>
+                      <p style={{ color: "#555", fontSize: 13, fontFamily: mono, marginBottom: 16 }}>→ {c.prompt}</p>
                       {/* Stars */}
                       <div style={{ display: "flex", gap: 8, marginBottom: 14, alignItems: "center" }}>
                         {[1,2,3,4,5].map(s => (
@@ -732,7 +849,7 @@ function EditorialReview() {
                         <span style={{ color: "#666", fontSize: 12, fontFamily: mono, marginLeft: 4 }}>{score ? `${score}/5` : "—"}</span>
                       </div>
                       <textarea value={note} onChange={e => setNotes(n => ({ ...n, [c.id]: e.target.value }))} placeholder="Your notes..."
-                        style={{ width: "100%", minHeight: 80, background: "#050505", border: "1px solid #222", borderRadius: 2, color: "#ccc", fontFamily: mono, fontSize: 12, lineHeight: 1.6, padding: 10, resize: "vertical", outline: "none", boxSizing: "border-box" }} />
+                        style={{ width: "100%", minHeight: 80, background: "#050505", border: "1px solid #222", borderRadius: 2, color: "#ccc", fontFamily: serif, fontSize: 14, lineHeight: 1.6, padding: 10, resize: "vertical", outline: "none", boxSizing: "border-box" }} />
                     </div>
                   );
                 })()}
@@ -741,8 +858,8 @@ function EditorialReview() {
                 {allScored && !showResults && (
                   <div style={{ background: "#080808", border: "1px solid #1a1a1a", borderLeft: "3px solid #c8a96e", borderRadius: 2, padding: "18px 18px", marginBottom: 20 }}>
                     <div style={{ color: "#c8a96e", fontSize: 11, letterSpacing: "0.12em", marginBottom: 4 }}>09 — REVISION READINESS</div>
-                    <p style={{ color: "#888", fontFamily: serif, fontSize: 13, fontStyle: "italic", marginBottom: 16 }}>Based on the above: where does this piece stand? Justify your answer before this locks.</p>
-                    <p style={{ color: "#4a4a6a", fontFamily: mono, fontSize: 10, marginBottom: 14 }}>⚠ This verdict is for your own study. Do not use it as the basis for submission decisions.</p>
+                    <p style={{ color: "#888", fontFamily: serif, fontSize: 15, fontStyle: "italic", marginBottom: 16 }}>Based on the above: where does this piece stand? Justify your answer before this locks.</p>
+                    <p style={{ color: "#4a4a6a", fontFamily: mono, fontSize: 12, marginBottom: 14 }}>⚠ This verdict is for your own study. Do not use it as the basis for submission decisions.</p>
                     <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
                       {READINESS.map(r => (
                         <button key={r.value} onClick={() => !verdictLocked && setReadiness(r.value)} disabled={verdictLocked} style={{ background: readiness === r.value ? "#c8a96e" : "#0d0d0d", color: readiness === r.value ? "#000" : "#555", border: `1px solid ${readiness === r.value ? "#c8a96e" : "#222"}`, borderRadius: 2, padding: "7px 14px", fontFamily: mono, fontSize: 11, cursor: verdictLocked ? "default" : "pointer" }}>{r.label}</button>
@@ -751,7 +868,7 @@ function EditorialReview() {
                     {readiness && !verdictLocked && (
                       <>
                         <textarea value={justification} onChange={e => setJustification(e.target.value)} placeholder="Justify your verdict. Minimum 40 characters before this locks..."
-                          style={{ width: "100%", minHeight: 80, background: "#050505", border: "1px solid #222", borderRadius: 2, color: "#ccc", fontFamily: serif, fontSize: 13, lineHeight: 1.6, padding: 12, resize: "vertical", outline: "none", boxSizing: "border-box", marginBottom: 10 }} />
+                          style={{ width: "100%", minHeight: 80, background: "#050505", border: "1px solid #222", borderRadius: 2, color: "#ccc", fontFamily: serif, fontSize: 15, lineHeight: 1.6, padding: 12, resize: "vertical", outline: "none", boxSizing: "border-box", marginBottom: 10 }} />
                         <Btn onClick={() => canLock && setVerdictLocked(true)} disabled={!canLock}>Lock Verdict</Btn>
                       </>
                     )}
@@ -820,14 +937,14 @@ function EditorialReview() {
                   {CRITERIA.map((c, i) => (
                     <div key={c.id} style={{ borderBottom: "1px solid #0f0f0f", padding: "14px 0" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, flexWrap: "wrap", gap: 4 }}>
-                        <span style={{ color: lowestTwo.some(l => l.id === c.id) ? "#c87070" : "#aaa", fontFamily: serif, fontSize: 13 }}>
-                          {c.label}{lowestTwo.some(l => l.id === c.id) && <span style={{ color: "#8b3a3a", fontSize: 10, marginLeft: 6 }}>↑ PRIORITY</span>}
+                        <span style={{ color: lowestTwo.some(l => l.id === c.id) ? "#c87070" : "#aaa", fontFamily: serif, fontSize: 15 }}>
+                          {c.label}{lowestTwo.some(l => l.id === c.id) && <span style={{ color: "#8b3a3a", fontSize: 11, marginLeft: 6 }}>↑ PRIORITY</span>}
                         </span>
                         <div style={{ display: "flex", gap: 2 }}>
                           {[1,2,3,4,5].map(s => <span key={s} style={{ color: s <= scores[c.id] ? "#c8a96e" : "#1a1a1a", fontSize: 12 }}>◆</span>)}
                         </div>
                       </div>
-                      <div style={{ color: "#666", fontFamily: serif, fontSize: 13, fontStyle: notes[c.id] ? "italic" : "normal", lineHeight: 1.5 }}>
+                      <div style={{ color: "#666", fontFamily: serif, fontSize: 14, fontStyle: notes[c.id] ? "italic" : "normal", lineHeight: 1.5 }}>
                         {notes[c.id] || <span style={{ color: "#2a2a2a" }}>No notes recorded.</span>}
                       </div>
                     </div>
@@ -851,7 +968,7 @@ function EditorialReview() {
                           <>
                             <div style={{ color: "#4a4a6a", fontSize: 10, letterSpacing: "0.15em", marginBottom: 18 }}>EDITOR'S LETTER</div>
                             {letter.split("\n\n").map((p, i) => (
-                              <p key={i} style={{ color: "#aaa", fontFamily: serif, fontSize: 14, lineHeight: 1.8, marginBottom: 16 }}>{p}</p>
+                              <p key={i} style={{ color: "#aaa", fontFamily: serif, fontSize: 15, lineHeight: 1.8, marginBottom: 16 }}>{p}</p>
                             ))}
                             <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #111", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
                               <span style={{ color: "#2a2a3a", fontSize: 10, fontStyle: "italic" }}>AI-generated · Practice use only</span>
@@ -872,7 +989,65 @@ function EditorialReview() {
   );
 }
 
-// ── Testimonials ──────────────────────────────────────────────────────────────
+// ── Notebook ──────────────────────────────────────────────────────────────────
+function Notebook({ progress }) {
+  const entries = ALL_MODULES
+    .filter(m => progress[m.id]?.completed && progress[m.id]?.reflection)
+    .map(m => {
+      const book = BOOKS.find(b => b.modules.some(bm => bm.id === m.id));
+      return { module: m, book, reflection: progress[m.id].reflection };
+    });
+
+  if (entries.length === 0) {
+    return (
+      <div style={{ maxWidth: 680, margin: "0 auto", padding: "60px 20px", textAlign: "center" }}>
+        <p style={{ fontStyle: "italic", fontSize: 17, color: "#8a7a5a", lineHeight: 1.7 }}>
+          Your notebook is empty. Complete a module to begin.
+        </p>
+        <p style={{ fontSize: 13, color: "#aaa", marginTop: 12 }}>
+          Each reflection you write will be collected here — a record of your thinking across the full sequence.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: 680, margin: "0 auto", padding: "32px 20px 80px" }}>
+      <div style={{ borderBottom: `1px solid ${C.border}`, paddingBottom: 24, marginBottom: 40 }}>
+        <div style={{ fontSize: 10, letterSpacing: "0.3em", color: C.gold, marginBottom: 8, textTransform: "uppercase" }}>The Press · Notebook</div>
+        <h2 style={{ fontWeight: "normal", fontSize: 24, margin: "0 0 8px" }}>Your Reflections</h2>
+        <p style={{ fontSize: 14, color: "#8a7a5a", fontStyle: "italic", margin: 0 }}>
+          {entries.length} of {ALL_MODULES.length} modules completed
+        </p>
+      </div>
+
+      {entries.map(({ module, book, reflection }, i) => (
+        <div key={module.id} style={{ marginBottom: 48, paddingBottom: 48, borderBottom: i < entries.length - 1 ? `1px solid ${C.border}` : "none" }}>
+          <div style={{ display: "flex", gap: 16, marginBottom: 16, alignItems: "baseline", flexWrap: "wrap" }}>
+            <span style={{ fontSize: 10, color: C.gold, letterSpacing: "0.2em", fontFamily: mono }}>
+              {String(module.id).padStart(2, "0")} · Book {book.number}
+            </span>
+            <h3 style={{ margin: 0, fontWeight: "normal", fontSize: 18, letterSpacing: "0.02em" }}>{module.title}</h3>
+          </div>
+          <p style={{ fontSize: 15, lineHeight: 1.9, color: "#2a2010", fontStyle: "italic", margin: 0, paddingLeft: 20, borderLeft: `2px solid ${C.border}` }}>
+            {reflection}
+          </p>
+        </div>
+      ))}
+
+      {entries.length === ALL_MODULES.length && (
+        <div style={{ textAlign: "center", padding: "40px 20px", background: C.parchment, border: `1px solid ${C.border}`, borderTop: `3px solid ${C.gold}` }}>
+          <div style={{ fontSize: 10, letterSpacing: "0.3em", color: C.gold, marginBottom: 12, textTransform: "uppercase" }}>Sequence Complete</div>
+          <p style={{ fontStyle: "italic", fontSize: 16, color: "#3a2e1a", lineHeight: 1.7, margin: 0 }}>
+            "The work is never finished. It is only abandoned — or sent."
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 // To display a testimonial: add an object below with { quote, name, context }
 // context is optional (e.g. "poet, New York" or "MFA grad")
 // Only add quotes you've personally approved from the feedback admin view.
@@ -1207,6 +1382,7 @@ export default function ThePressApp() {
   const navItems = [
     { key: "home", label: "Home" },
     { key: "toc", label: "Contents" },
+    { key: "notebook", label: "Notebook" },
     { key: "review", label: "Editorial" },
     ...(allComplete ? [{ key: "certificate", label: "Certificate" }] : []),
   ];
@@ -1261,6 +1437,7 @@ export default function ThePressApp() {
         {/* Views */}
         {view === "home" && <HomePage progress={progress} onStart={startOrContinue} onModule={selectModule} onFeedback={() => setView("feedback")} />}
         {view === "toc" && <TOC progress={progress} onSelect={selectModule} />}
+        {view === "notebook" && <Notebook progress={progress} />}
         {view === "module" && activeModule && activeBook && (
           <ModulePage module={activeModule} book={activeBook} progress={progress} onComplete={complete} onBack={() => setView("toc")} />
         )}
