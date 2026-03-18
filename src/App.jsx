@@ -1058,7 +1058,7 @@ function AdminFeedback({ onBack }) {
 // No key generator needed. Refunded keys stop working automatically.
 
 async function verifyWithGumroad(key) {
-  const res = await fetch("/api/verify-license", {
+  const res = await fetch("/.netlify/functions/verify-license", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ license_key: key }),
